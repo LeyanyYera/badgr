@@ -1,7 +1,5 @@
 # Created by wiggins@concentricsky.com on 8/27/15.
 from django.conf import settings
-
-from mainsite.utils import OriginSetting
 from .base import BaseBadgrEvent
 
 
@@ -83,6 +81,6 @@ class InstructorAccountCreatedEvent(BaseBadgrLtiEvent):
     def to_representation(self):
         data = super(InstructorAccountCreatedEvent, self).to_representation()
         data.update({
-            'user': self.user.primary_email,
+            'user': settings.HTTP_ORIGIN + self.user.get_absolute_url(),
         })
         return data

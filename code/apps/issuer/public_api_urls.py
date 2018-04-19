@@ -1,26 +1,20 @@
-from django.conf.urls import url
-from django.views.decorators.clickjacking import xframe_options_exempt
-from rest_framework.urlpatterns import format_suffix_patterns
+from django.conf.urls import patterns, url
 
-from .public_api import (IssuerJson, IssuerBadgesJson, IssuerImage, BadgeClassJson,
+from .public_api import (IssuerJson, IssuerImage, BadgeClassJson,
                          BadgeClassImage, BadgeClassCriteria, BadgeInstanceJson,
-                         BadgeInstanceImage, BackpackCollectionJson, BakedBadgeInstanceImage)
+                         BadgeInstanceImage)
 
-json_patterns = [
-    url(r'^issuers/(?P<entity_id>[^/.]+)$', xframe_options_exempt(IssuerJson.as_view(slugToEntityIdRedirect=True)), name='issuer_json'),
-    url(r'^issuers/(?P<entity_id>[^/.]+)/badges$', xframe_options_exempt(IssuerBadgesJson.as_view(slugToEntityIdRedirect=True)), name='issuer_badges_json'),
-    url(r'^badges/(?P<entity_id>[^/.]+)$', xframe_options_exempt(BadgeClassJson.as_view(slugToEntityIdRedirect=True)), name='badgeclass_json'),
-    url(r'^assertions/(?P<entity_id>[^/.]+)$', xframe_options_exempt(BadgeInstanceJson.as_view(slugToEntityIdRedirect=True)), name='badgeinstance_json'),
 
-    url(r'^collections/(?P<entity_id>[^/.]+)$', xframe_options_exempt(BackpackCollectionJson.as_view(slugToEntityIdRedirect=True)), name='collection_json'),
-]
+urlpatterns = patterns(
+    'issuer.public_api_views',
+    # TODO: Handle url(r'^$),
+    url(r'^/issuers/(?P<slug>[-\w]+)$', IssuerJson.as_view(), name='issuer_json'),
+    url(r'^/issuers/(?P<slug>[-\w]+)/image$', IssuerImage.as_view(), name='issuer_image'),
 
-image_patterns = [
-    url(r'^issuers/(?P<entity_id>[^/]+)/image$', IssuerImage.as_view(slugToEntityIdRedirect=True), name='issuer_image'),
-    url(r'^badges/(?P<entity_id>[^/]+)/image', BadgeClassImage.as_view(slugToEntityIdRedirect=True), name='badgeclass_image'),
-    url(r'^badges/(?P<entity_id>[^/]+)/criteria', BadgeClassCriteria.as_view(slugToEntityIdRedirect=True), name='badgeclass_criteria'),
-    url(r'^assertions/(?P<entity_id>[^/]+)/image', BadgeInstanceImage.as_view(slugToEntityIdRedirect=True), name='badgeinstance_image'),
-    url(r'^assertions/(?P<entity_id>[^/]+)/baked', BakedBadgeInstanceImage.as_view(slugToEntityIdRedirect=True), name='badgeinstance_bakedimage'),
-]
+    url(r'^/badges/(?P<slug>[-\w]+)$', BadgeClassJson.as_view(), name='badgeclass_json'),
+    url(r'^/badges/(?P<slug>[-\w]+)/image', BadgeClassImage.as_view(), name='badgeclass_image'),
+    url(r'^/badges/(?P<slug>[-\w]+)/criteria', BadgeClassCriteria.as_view(), name='badgeclass_criteria'),
 
-urlpatterns = format_suffix_patterns(json_patterns, allowed=['json']) + image_patterns
+    url(r'^/assertions/(?P<slug>[-\w]+)$', BadgeInstanceJson.as_view(), name='badgeinstance_json'),
+    url(r'^/assertions/(?P<slug>[-\w]+)/image', BadgeInstanceImage.as_view(), name='badgeinstance_image'),
+)

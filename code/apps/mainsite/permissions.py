@@ -1,7 +1,5 @@
 from rest_framework import permissions
 
-from badgeuser.models import CachedEmailAddress
-
 
 class IsOwner(permissions.BasePermission):
     """
@@ -18,13 +16,3 @@ class IsRequestUser(permissions.BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         return obj == request.user
-
-
-class AuthenticatedWithVerifiedEmail(permissions.BasePermission):
-    """
-    Allows access only to authenticated users who have verified email addresses.
-    """
-    message = "This function only available to authenticated users with confirmed email addresses."
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated() and request.user.verified

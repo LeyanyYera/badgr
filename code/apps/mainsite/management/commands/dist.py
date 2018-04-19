@@ -1,12 +1,8 @@
 import os
-import pkg_resources
-import sys
-
-from django.core.management import call_command
+from django.core import management
 from django.core.management.base import BaseCommand, CommandError
+from django.apps import apps
 from subprocess import call
-
-import mainsite
 from mainsite import TOP_DIR
 
 
@@ -15,13 +11,25 @@ class Command(BaseCommand):
     help = 'Runs build tasks to compile javascript and css'
 
     def handle(self, *args, **options):
-        dirname = os.path.join(TOP_DIR, 'apps', 'mainsite', 'static', 'swagger-ui')
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+        """
+        Builds gulp resources.
+        Gulp must be installed, and node_modules must be populated with `npm install`
+        """
 
-        call_command('generate_swagger_spec',
-            output=os.path.join(dirname, 'api_spec_{version}.json'),
-            preamble=os.path.join(dirname, "API_DESCRIPTION_{version}.md"),
-            versions=['v1', 'v2'],
-            include_oauth2_security=True
-        )
+        if apps.is_installed('badgebook'):
+            # if badgebook is present, pull in its assets
+            import pkg_resources
+            import shutil
+            components = pkg_resources.resource_listdir('badgebook', 'jsx')
+            pkg_path = pkg_resources.resource_filename('badgebook', 'jsx')
+
+            dest = os.path.join(TOP_DIR, 'build', 'badgebook')
+            if not os.path.isdir(dest):
+                os.mkdir(dest)
+            for component in components:
+                shutil.copy2(os.path.join(pkg_path, component), dest)
+
+        ret = call(['grunt', 'dist'])
+        if ret != 0:
+            raise CommandError("grunt dist failed")
+        #management.call_command('test', verbosity=1)
